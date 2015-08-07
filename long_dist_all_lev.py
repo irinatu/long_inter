@@ -44,7 +44,7 @@ def clip(arr, stddevs=10):
   np.clip(arr, 0, mean + stddevs * stddev, out=arr)
   return arr
 
-def calculate_prob(mat_dom):
+def calculate_prob(mat_dom, dom):
     N = np.sum(mat_dom)
     acc = 0
     dl = mat_dom.shape[0]
@@ -58,8 +58,9 @@ def calculate_prob(mat_dom):
             oczekiw = float(a)*float(b)/float(N)
             if oczekiw == 0.0 or mat_dom[i][j] == 0.0: continue
 #==============================================================================
-            print "oczekiwana ", oczekiw, " obserwowana ", mat_dom[i][j]
-            print i, j, N, a, b,mat_dom[i][j], p, acc, all_cont
+            #print "oczekiwana ", oczekiw, " obserwowana ", mat_dom[i][j]
+            #print i, dom[i][0], dom[i][1], j, dom[j][0], dom[j][1], N, a, b,mat_dom[i][j], p, acc, all_cont
+            print i, dom[i][0], dom[i][1], j, dom[j][0], dom[j][1], p
 #==============================================================================
             #if p < 0.1:
             #    acc +=1
@@ -88,7 +89,7 @@ if __name__ == '__main__':
         sys.exit(1)
       
     else: arr = np.load(sys.argv[1])
-    print sys.argv[2] 
+    #print sys.argv[2] 
     with open(sys.argv[2]) as csvfile:
         reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
         #reader1 = int_wrapper(reader)
@@ -106,6 +107,6 @@ if __name__ == '__main__':
         
     #nb_contacts_plot(new_arr, dom_dict)
     
-    calculate_prob(new_arr)
+    calculate_prob(new_arr, dom_dict)
     
   
