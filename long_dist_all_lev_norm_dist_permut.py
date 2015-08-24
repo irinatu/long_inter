@@ -118,7 +118,7 @@ def permutation(mac, domains):
         co = 0
         macierze.append(np.copy(mac))
         for di in range(l):
-            np.fill_diagonal(macierze[i][0:ro, co:l], numpy.random.permutation(macierze[i].diagonal(di)))
+            np.fill_diagonal(macierze[i][0:ro, co:l], np.random.permutation(macierze[i].diagonal(di)))
             ro -= 1
             co += 1
             if ro == 1: break
@@ -130,7 +130,8 @@ def permutation(mac, domains):
             greater = [g for g in medians if g >= our_med]
             print medians, our_med, greater
             p = float(len(greater))/float(mat_nr)
-            print i, dom[i][0], dom[i][1], j, dom[j][0], dom[j][1], p
+            print i, domains[i][0], domains[i][1], j, domains[j][0], domains[j][1], p
+            if p != 0.0 and p != 1.0 : print 'HURAAAAAA', p
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
@@ -154,7 +155,7 @@ if __name__ == '__main__':
     arr = symmetric(arr)
     arr_nor = dist_normalization(arr)
     plot(arr_nor)
-    permutation(arr_nor, dom_dickt)
+    permutation(arr_nor, dom_dict)
     
     
     
