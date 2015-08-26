@@ -112,7 +112,8 @@ def plot(array):
 def permutation(mac, domains):
     macierze = []
     l = mac.shape[0]
-    mat_nr = 10
+    mat_nr = 1000
+    print "The number of arrays: ", mat_nr
     for i in range(mat_nr):
         ro = l
         co = 0
@@ -128,10 +129,10 @@ def permutation(mac, domains):
             medians = [np.median(m[domains[i][0]:domains[i][1]+1, domains[j][0]:domains[j][1]+1]) for m in macierze] # lista median dla oddzialywania 2 domen i i j
             our_med = np.median(mac[domains[i][0]:domains[i][1]+1, domains[j][0]:domains[j][1]+1])
             greater = [g for g in medians if g >= our_med]
-            print medians, our_med, greater
+            #print medians, our_med, greater
             p = float(len(greater))/float(mat_nr)
             print i, domains[i][0], domains[i][1], j, domains[j][0], domains[j][1], p
-            if p != 0.0 and p != 1.0 : print 'HURAAAAAA', p
+            #if p != 0.0 and p != 1.0 : print 'HURAAAAAA', p
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
