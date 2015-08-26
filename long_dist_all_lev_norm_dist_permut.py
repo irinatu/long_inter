@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import sys, csv, math
+import sys, csv, math, pickle, optparse
 import scipy.stats
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
@@ -109,20 +109,24 @@ def plot(array):
     plt.colorbar()
     plt.show()
     
-def permutation(mac, domains):
-    macierze = []
-    l = mac.shape[0]
-    mat_nr = 1000
-    print "The number of arrays: ", mat_nr
-    for i in range(mat_nr):
-        ro = l
-        co = 0
-        macierze.append(np.copy(mac))
-        for di in range(l):
-            np.fill_diagonal(macierze[i][0:ro, co:l], np.random.permutation(macierze[i].diagonal(di)))
-            ro -= 1
-            co += 1
-            if ro == 1: break
+def permutation(mac, domains, macierze):
+    if len(macierze) == 0:
+    #macierze = []
+        l = mac.shape[0]
+        mat_nr = 1000
+        print "The number of arrays: ", mat_nr
+        for i in range(mat_nr):
+            ro = l
+            co = 0
+            macierze.append(np.copy(mac))
+            for di in range(l):
+                np.fill_diagonal(macierze[i][0:ro, co:l], np.random.permutation(macierze[i].diagonal(di)))
+                ro -= 1
+                co += 1
+                if ro == 1: break
+        name = opts.Matrix.split('.')[0] + opts.Domains.split('.')[0]+".pick"
+        pickle.dump(macierze, open(name, 'w'))
+    else: pass
     nr_dom = len(domains.keys())
     for  i in range(nr_dom):
         for j in range(nr_dom): 
@@ -135,13 +139,24 @@ def permutation(mac, domains):
             #if p != 0.0 and p != 1.0 : print 'HURAAAAAA', p
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
+
+    optparser = optparse.OptionParser(usage = "%prog [<options>]")
+    optparser.add_option('-m', type = "string", default = "", dest="Matrix", help = "Numpy matrix in npy format")
+    optparser.add_option('-d', type = "string", default = "", dest="Domains", help ="Txt file with domain information")
+    optparser.add_option('-l', type = "string", default = "", dest="Loadmtx", help ="The pickle file with list of permutated matrices")
+
+    (opts,args) = optparser.parse_args()
+
+    if len(args) ==1:
         print "No matrix or domain information were given, sorry. Run script by: python long_dist.py matrix.npy domain_info.txt"
-        sys.exit(1)
+        print optparser.format_help()
+        exit(1)
       
-    else: arr = np.load(sys.argv[1])
+    else: arr = np.load(opts.Matrix)
     #print sys.argv[2] 
-    with open(sys.argv[2]) as csvfile:
+    if opts.Loadmtx != '': LOADMATR = True
+    else: LOADMATR = False
+    with open(opts.Domains) as csvfile:
         reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
         #reader1 = int_wrapper(reader)
         #print reader.next()
@@ -156,7 +171,11 @@ if __name__ == '__main__':
     arr = symmetric(arr)
     arr_nor = dist_normalization(arr)
     plot(arr_nor)
-    permutation(arr_nor, dom_dict)
+
+    if LOADMATR:
+        macie = pickle.load(open(opts.Loadmtx))
+    else: macie = []
+    permutation(arr_nor, dom_dict, macie)
     
     
     
