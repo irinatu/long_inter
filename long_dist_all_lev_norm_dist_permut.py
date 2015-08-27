@@ -126,7 +126,9 @@ def permutation(mac, domains, macierze):
                 if ro == 1: break
         name = opts.Matrix.split('.')[0] + opts.Domains.split('.')[0]+".pick"
         pickle.dump(macierze, open(name, 'w'))
-    else: pass
+    else: 
+        mat_nr = len(macierze)
+        print mat_nr
     nr_dom = len(domains.keys())
     for  i in range(nr_dom):
         for j in range(nr_dom): 
@@ -170,7 +172,7 @@ if __name__ == '__main__':
     #plot(arr)
     arr = symmetric(arr)
     arr_nor = dist_normalization(arr)
-    plot(arr_nor)
+    #plot(arr_nor)
 
     if LOADMATR:
         macie = pickle.load(open(opts.Loadmtx))
