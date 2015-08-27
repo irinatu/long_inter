@@ -148,11 +148,11 @@ if __name__ == '__main__':
     optparser.add_option('-l', type = "string", default = "", dest="Loadmtx", help ="The pickle file with list of permutated matrices")
 
     (opts,args) = optparser.parse_args()
-
-    if len(args) ==1:
+    print len(sys.argv)
+    if len(sys.argv) < 4:
         print "No matrix or domain information were given, sorry. Run script by: python long_dist.py matrix.npy domain_info.txt"
         print optparser.format_help()
-        exit(1)
+        sys.exit(1)
       
     else: arr = np.load(opts.Matrix)
     #print sys.argv[2] 
