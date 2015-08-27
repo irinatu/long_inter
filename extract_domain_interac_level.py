@@ -49,7 +49,7 @@ if __name__=="__main__":
     print "The level you are chosen is", opts.Level
     out_dom = opts.Domains.split('/')[-1].split('.')[0]+"_only"+opts.Level+"level.out"
     domeny = parse_domains(lines(opts.Domains, header=False), opts.Level, out_dom)
-    print domeny
+    #print domeny
     out_name = opts.Interactions.split('/')[-1].split('.')[0]+"_only"+opts.Level+"level.out"
     extract(domeny, lines(opts.Interactions, header=False), out_name)
     
