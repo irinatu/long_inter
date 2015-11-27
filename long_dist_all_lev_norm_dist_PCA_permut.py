@@ -5,6 +5,7 @@ import scipy.stats
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from matplotlib.mlab import PCA
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 #import seaborn as sns
 
 def nb_contacts_plot(matr, dom_d):
@@ -146,31 +147,104 @@ def permutation(mac, domains, macierze):
             p = float(len(greater))/float(mat_nr)
             print i, domains[i][0], domains[i][1], j, domains[j][0], domains[j][1], p
             #if p != 0.0 and p != 1.0 : print 'HURAAAAAA', p
+
+def kth_diag_indices(a, k):
+    rows, cols = np.diag_indices_from(a)
+    if k < 0:
+        return rows[-k:], cols[:k]
+    elif k > 0:
+        return rows[:-k], cols[k:]
+    else:
+        return rows, cols
+            
+def permutation_pca(per_m, pca_m, domains, macierze):
+    def fill_perm_matr(list_comp, perm_ma, list_perm, r, c):
+        for ind in list_comp:
+            perm_ma[r[ind],c[ind]] = list_perm[0]
+            del list_perm[0]
+        if len(list_perm) != 0: print "Permutation list is not empty!!"
+        return perm_ma
+    if len(macierze) == 0:
+        #macierze = []
+        mat_nr = 10
+        print "The number of arrays: ", mat_nr
+        for m in range(mat_nr):
+            after_p = np.zeros_like(per_m)
+    
+            for i in range(per_m.shape[0]):
+                row,col = kth_diag_indices(per_m, i)
+                #print "diagonal", a[kth_diag_indices(a, i)]
+                #print row,col
+                pos = list(np.where(np.diag(pca_m, k=i)==1.0)[0]) # indecses of diagonal with pos-pos interactions, that are indicated in pca_matr as 1
+                #print pos
+                perm_list = list(np.random.permutation(np.diag(per_m, k = i)[np.where(np.diag(pca_m, k=i)==1.0)]))
+                after_p = fill_perm_matr(pos, after_p, perm_list, row, col)
+                neg = list(np.where(np.diag(pca_m, k=i)==-1.0)[0]) # indecses of diagonal with neg-neg interactions, that are indicated in pca_matr as 1
+                perm_list = list(np.random.permutation(np.diag(per_m, k = i)[np.where(np.diag(pca_m, k=i)==-1.0)]))
+                after_p = fill_perm_matr(neg, after_p, perm_list, row, col)
+                pos_neg = list(np.where(np.diag(pca_m, k=i)==0.0)[0]) # indecses of diagonal with pos-neg interactions, that are indicated in pca_matr as 1
+                perm_list = list(np.random.permutation(np.diag(per_m, k = i)[np.where(np.diag(pca_m, k=i)==0.0)]))
+                after_p = fill_perm_matr(pos_neg, after_p, perm_list, row, col)
+            macierze.append(after_p)
+        name = opts.Matrix.split('.')[0] + opts.Domains.split('.')[0]+"_pca_permut.pick"
+        pickle.dump(macierze, open(name, 'w'))
+    else:
+        mat_nr = len(macierze)
+        print mat_nr
+    #nr_dom = len(domains.keys())
+    print len(macierze)
+    for  i in domains.keys():
+        for j in domains.keys(): 
+            #print type(domains), domains 
+            #print domains[i][0], domains[i][1]+1
+            medians = [np.median(m[domains[i][0]:domains[i][1]+1, domains[j][0]:domains[j][1]+1]) for m in macierze] # lista median dla oddzialywania 2 domen i i j
+            our_med = np.median(per_m[domains[i][0]:domains[i][1]+1, domains[j][0]:domains[j][1]+1])
+            greater = [g for g in medians if g >= our_med]
+            #print medians, our_med, greater
+            p = float(len(greater))/float(mat_nr)
+            print i, domains[i][0], domains[i][1], j, domains[j][0], domains[j][1], p
+            #if p != 0.0 and p != 1.0 : print 'HURAAAAAA', p
+        
+
             
 def principle_component(mac):
-    zmiennosc = np.std(mac, axis=0)
+    zmiennosc = np.std(mac, axis=0) # find columns with the same values
     if len(zmiennosc) == mac.shape[0]: 
-        print zmiennosc, np.where(zmiennosc==0.0), mac.shape, type(np.where(zmiennosc==0.0)[0].tolist())
-        mac1 = np.delete(mac, np.where(zmiennosc==0.0)[0].tolist(), axis =1)
-        print np.std(mac1, axis=0), mac1.shape
+        #print zmiennosc, np.where(zmiennosc==0.0), mac.shape, type(np.where(zmiennosc==0.0)[0].tolist())
+        mac1 = np.delete(mac, np.where(zmiennosc==0.0)[0].tolist(), axis =1) # delete columns with the same values
+        #print np.std(mac1, axis=0), mac1.shape
 
-    else: print len(zmiennosc), arr_nor.shape[0]
+    else:
+        pass 
+        #print len(zmiennosc), arr_nor.shape[0]
     
     results = PCA(mac1)
-    print "results", results.fracs[0]
+    print "results", results.fracs, results
     print "skladowe", results.Y[0:,0], type(results.Y[0:,0])
-    plt.figure(1)
-    #plt.subplot(211)
-    plt.subplot2grid((6,6), (0, 1), rowspan=1, colspan=3)
-    plt.plot(results.Y[:,0])
-    print results.Y[:,0].shape, np.min(results.Y[:,0]),np.max(results.Y[:,0])
-    plt.axis([0, results.Y[:,0].shape[0], np.min(results.Y[:,0]),np.max(results.Y[:,0])])
-    #plt.subplot(212)
-    plt.subplot2grid((6,6), (2, 0), rowspan=5, colspan=5)
-    plt.imshow(mac,origin='lower',norm=LogNorm(), interpolation='nearest')
-    #plt.colorbar()
-    #plt.tight_layout()
+    fig = plt.figure()
+    axImsh = plt.subplot(111)
+    axImsh.imshow(mac,origin='lower',norm=LogNorm(), interpolation='nearest')
+    axImsh.set_aspect(1.)
+    
+    divider = make_axes_locatable(axImsh)
+    axPlot = divider.append_axes("top", size=1.2, pad=0.1, sharex=axImsh)
+    
+    axPlot.plot(results.Y[:,0])
+    axPlot.axis([0, results.Y[:,0].shape[0], np.min(results.Y[:,0]),np.max(results.Y[:,0])])
+    
     plt.show()
+    fig.tight_layout()
+    fig.savefig('PCA_with_DistNorm.png')
+    print results.Y[:,0].shape[0]
+    mac_pca = np.zeros((results.Y[:,0].shape[0], results.Y[:,0].shape[0]))# creat the matrics where +1 is for i and j >0, -1 for i and j  <0 and 0 is for i>0, while j<0 ore other side
+    for i in range(results.Y[:,0].shape[0]):
+        for j in range(i, results.Y[:,0].shape[0]):
+            if results.Y[:,0][i] > 0.0 and results.Y[:,0][j] > 0.0: mac_pca[i][j] = mac_pca[j][i] = 1.0
+            elif results.Y[:,0][i] < 0.0 and results.Y[:,0][j] < 0.0:mac_pca[i][j] = mac_pca[j][i] = -1.0
+            elif (results.Y[:,0][i] > 0.0 and results.Y[:,0][j] < 0.0) or (results.Y[:,0][i] < 0.0 and results.Y[:,0][j] > 0.0): mac_pca[i][j] = mac_pca[j][i] = 0.0
+            else: print "Something wird ", results.Y[:,0][i], results.Y[:,0][j]
+            
+    return mac_pca
     
     
     
@@ -204,7 +278,7 @@ if __name__ == '__main__':
     #print dom_dict
     
     arr = clip(arr)
-    #plot(arr)
+    plot(arr)
     arr = symmetric(arr)
     #print np.isnan(arr)
     arr_nor = dist_normalization(arr)
@@ -214,11 +288,13 @@ if __name__ == '__main__':
     #print np.isnan(arr_nor)
     #arr_nor[np.isnan(arr_nor)] = 0.0
     #print np.isnan(arr_nor)
-    principle_component(arr_nor)
+    mat_pca = principle_component(arr_nor)
+    
 
-    #if LOADMATR:
-     #   macie = pickle.load(open(opts.Loadmtx))
-    #else: macie = []
+    if LOADMATR:
+        macie = pickle.load(open(opts.Loadmtx))
+    else: macie = []
+    permutation_pca(arr_nor, mat_pca, dom_dict, macie)
     #permutation(arr_nor, dom_dict, macie)
     
     
