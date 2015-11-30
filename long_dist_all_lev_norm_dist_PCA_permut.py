@@ -166,7 +166,7 @@ def permutation_pca(per_m, pca_m, domains, macierze):
         return perm_ma
     if len(macierze) == 0:
         #macierze = []
-        mat_nr = 10
+        mat_nr = 1000
         print "The number of arrays: ", mat_nr
         for m in range(mat_nr):
             after_p = np.zeros_like(per_m)
@@ -278,7 +278,7 @@ if __name__ == '__main__':
     #print dom_dict
     
     arr = clip(arr)
-    plot(arr)
+    #plot(arr)
     arr = symmetric(arr)
     #print np.isnan(arr)
     arr_nor = dist_normalization(arr)
