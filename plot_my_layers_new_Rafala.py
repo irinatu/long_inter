@@ -13,7 +13,7 @@ from matplotlib import rcParams, cm
 
 
 
-def lines(path,header=False):
+def lines(path,header=True):
     with open(path,'r') as handle:
         if header:
             handle.next()
@@ -58,25 +58,29 @@ def prepar_interac_matr(inte, si, dom):
     i_m = np.zeros((si, si))
     ZERO = True
     #print dom
+    header = True
+    if header: inte.next()
+    else: pass
     for l in inte:
-        #print l[6], "tak"
-        if l[6] != '0.0':
+        #print l
+        if l[2] != '0.0':
             #print "nie 0.0"
             dom1 = [dom[i] for i in dom.keys() if i[1] == l[0]]
-            dom2 = [dom[i] for i in dom.keys() if i[1] == l[3]]
+            dom2 = [dom[i] for i in dom.keys() if i[1] == l[1]]
             dom1_2 = sum(dom1 + dom2,[])
             
             if len(dom1_2) == 2:
-                i_m[int(dom1_2[0][0]):int(dom1_2[0][1])+1, int(dom1_2[1][0]):int(dom1_2[1][1])+1] = round(-math.log10(float(l[6])), 5)
+                #print dom1_2[0][0], int(dom1_2[0][1])+1, dom1_2[1][0], int(dom1_2[1][1])+1, i_m.shape
+                i_m[int(dom1_2[0][0]):int(dom1_2[0][1])+1, int(dom1_2[1][0]):int(dom1_2[1][1])+1] = round(-math.log10(float(l[2])), 5)
                 
             elif len(dom1_2) == 1:
-                i_m[int(dom1_2[0][0]):int(dom1_2[0][1])+1, int(dom1_2[1][0]):int(dom1_2[1][1])+1] = round(-math.log10(float(l[6])), 5)
+                i_m[int(dom1_2[0][0]):int(dom1_2[0][1])+1, int(dom1_2[1][0]):int(dom1_2[1][1])+1] = round(-math.log10(float(l[2])), 5)
                 
             else: print "More domains!!!!", dom1_2
         elif ZERO:
             
             dom1 = [dom[i] for i in dom.keys() if i[1] == l[0]]
-            dom2 = [dom[i] for i in dom.keys() if i[1] == l[3]]
+            dom2 = [dom[i] for i in dom.keys() if i[1] == l[1]]
             dom1_2 = sum(dom1 + dom2,[])
            
             if len(dom1_2) == 2:
@@ -106,7 +110,7 @@ if __name__=="__main__":
         exit(1)
 
     domeny, le = parse_domains(lines(opts.Domains, header=False))
-    print domeny
+    #print domeny
     matr = np.load(opts.Matrix)
     
     matr = clip_and_blur(matr)
