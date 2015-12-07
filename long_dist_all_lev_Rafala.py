@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import sys, csv
+import sys, csv, optparse
 import scipy.stats
 
 def nb_contacts_plot(matr, dom_d):
@@ -32,6 +32,7 @@ def domens_matr(domens, raw_matr):
             #print i, j, domens[i][0], domens[i][1],domens[j][0], domens[j][1]
             #print len(raw_matr[domens[i][0]:domens[i][1]+1]), len(raw_matr[domens[j][0]:domens[j][1]+1])
             #new_matr[i,j]= raw_matr[domens[i][0]:domens[i][1]+1, domens[j][0]:domens[j][1]+1].sum()/(len(raw_matr[domens[i][0]:domens[i][1]+1]) * len(raw_matr[domens[j][0]:domens[j][1]+1]))
+            #print domens[i], domens[j], new_matr
             new_matr[domens[i][0],domens[j][0]]= raw_matr[domens[i][1]:domens[i][2]+1, domens[j][1]:domens[j][2]+1].sum()
     #new_matr = np.nan_to_num(new_matr)
     
@@ -45,6 +46,7 @@ def clip(arr, stddevs=10):
   return arr
 
 def calculate_prob(mat_dom, dom):
+    print "#domain_1 domain_2 p-value"
     N = np.sum(mat_dom)
     acc = 0
     dl = mat_dom.shape[0]
@@ -61,7 +63,8 @@ def calculate_prob(mat_dom, dom):
 #==============================================================================
             #print "oczekiwana ", oczekiw, " obserwowana ", mat_dom[i][j]
             #print i, dom[i][0], dom[i][1], j, dom[j][0], dom[j][1], N, a, b,mat_dom[i][j], p, acc, all_cont
-            print i, dom[i][1], dom[i][2], j, dom[j][1], dom[j][2], p
+            #print i, dom[i][1], dom[i][2], j, dom[j][1], dom[j][2], p
+            print i, j, p
 #==============================================================================
             #if p < 0.1:
             #    acc +=1
@@ -85,29 +88,49 @@ def int_wrapper(read):
         yield map(int,v[2:])
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
+
+    optparser = optparse.OptionParser(usage = "%prog [<options>]")
+    optparser.add_option('-m', type = "string", default = "", dest="Matrix", help = "Numpy matrix in npy format")
+    optparser.add_option('-d', type = "string", default = "", dest="Domains", help ="Txt file with domain information")
+    optparser.add_option('-l', type = "string", default = "", dest="Level", help ="The level of sherpa")
+    optparser.add_option('-c', type = "string", default = "", dest="Chrom", help ="The level of sherpa")
+
+    (opts,args) = optparser.parse_args()
+    print len(sys.argv)
+    if len(sys.argv) < 4:
         print "No matrix or domain information were given, sorry. Run script by: python long_dist.py matrix.npy domain_info.txt"
+        print optparser.format_help()
         sys.exit(1)
+
+
+    #if len(sys.argv) < 3:
+    #    print "No matrix or domain information were given, sorry. Run script by: python long_dist.py matrix.npy domain_info.txt"
+     #   sys.exit(1)
       
-    else: arr = np.load(sys.argv[1])
+    else: arr = np.load(opts.Matrix)
     #print sys.argv[2] 
-    numline = len(open(sys.argv[2]).readlines())
     #print numline
-    with open(sys.argv[2]) as csvfile:   
+    with open(opts.Domains) as csvfile:   
         reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
         #reader1 = int_wrapper(reader)
         #print type(reader), numline
-        #print reader.next()
+        reader.next()
         #dom_dict = {rows[1]:[rows[2], rows[3]] for rows in reader}
-        dom_dict = {rows[1]:[nr, rows[2], rows[3]] for rows,nr in zip(reader, range(numline+1))}  
-        dom_dict = {int(k):map(int,v) for k, v in dom_dict.iteritems()}
+        if opts.Level == "":
+            dom = {float(rows[3])/150000.0 :[rows[0], (float(rows[4])/150000.0)-1] for rows in reader if rows[2]== opts.Chrom}  
+        else:
+            dom = {float(rows[3])/150000.0:[rows[0], (float(rows[4])/150000.0)-1] for rows in reader if (rows[1] == opts.Level and rows[2]==opts.Chrom)}
+        #dom_dict = {int(k):map(int,v) for k, v in dom_dict.iteritems()}
         #dom_dict = map(int, dom_dict)
+    numline = len(dom.keys())
+    dom_dict = {dom[start][0]:[nr, start, dom[start][1]] for start,nr in zip(sorted(dom.keys()), range(numline)) }
+    dom.keys().sort()
     csvfile.close()    
     #print dom_dict
     
     #arr = clip(arr)
     arr = symmetric(arr)
-    #print arr[0]
+    print arr[0].shape, len(dom_dict.keys())
     new_arr = domens_matr(dom_dict, arr)
     #print new_arr[0], type(new_arr[0][3]) 
         

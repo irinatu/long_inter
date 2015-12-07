@@ -148,7 +148,31 @@ def permutation(mac, domains, macierze):
             print i, domains[i][0], domains[i][1], j, domains[j][0], domains[j][1], p
             #if p != 0.0 and p != 1.0 : print 'HURAAAAAA', p
 
-def kth_diag_indices(a, k):
+def rozklad_aa_bb_ab(pca_m):
+    dl = pca_m.shape[0]
+    print "Lenght of diagonals ", dl
+    distr = np.zeros((dl,3))
+    for di in range(dl):
+         distr[di][0] = np.where(np.diag(pca_m, di) == 1.0)[0].shape[0]
+         distr[di][1] = np.where(np.diag(pca_m, di) == -1.0)[0].shape[0]
+         distr[di][2] = np.where(np.diag(pca_m, di) == 0.0)[0].shape[0]
+    fig = plt.figure()
+    plt.subplot(3, 1, 1)
+    plt.bar(range(dl), distr[:,0], color= 'blue')
+    plt.axis([0, dl, 0, np.amax(distr)])
+    plt.title('aa')
+    plt.subplot(3, 1, 2)
+    plt.bar(range(dl), distr[:,1], color= 'red')
+    plt.axis([0, dl, 0, np.amax(distr)])
+    plt.title('bb')
+    plt.subplot(3, 1, 3)
+    plt.bar(range(dl), distr[:,2], color= 'green')
+    plt.axis([0, dl, 0, np.amax(distr)])
+    plt.title('ab')
+    plt.show()
+    
+
+def kth_diag_indices(a, k): # return indecses of kth diagonal of matrics
     rows, cols = np.diag_indices_from(a)
     if k < 0:
         return rows[-k:], cols[:k]
@@ -219,8 +243,8 @@ def principle_component(mac):
         #print len(zmiennosc), arr_nor.shape[0]
     
     results = PCA(mac1)
-    print "results", results.fracs, results
-    print "skladowe", results.Y[0:,0], type(results.Y[0:,0])
+    print "results", results.fracs
+    #print "skladowe", results.Y[0:,0], type(results.Y[0:,0])
     fig = plt.figure()
     axImsh = plt.subplot(111)
     axImsh.imshow(mac,origin='lower',norm=LogNorm(), interpolation='nearest')
@@ -278,23 +302,24 @@ if __name__ == '__main__':
     #print dom_dict
     
     arr = clip(arr)
-    #plot(arr)
+    plot(arr)
     arr = symmetric(arr)
     #print np.isnan(arr)
-    arr_nor = dist_normalization(arr)
-    plot(arr_nor)
+    #arr_nor = dist_normalization(arr)
+    #plot(arr_nor)
     
     
     #print np.isnan(arr_nor)
     #arr_nor[np.isnan(arr_nor)] = 0.0
     #print np.isnan(arr_nor)
-    mat_pca = principle_component(arr_nor)
+    mat_pca = principle_component(arr)
     
 
     if LOADMATR:
         macie = pickle.load(open(opts.Loadmtx))
     else: macie = []
-    permutation_pca(arr_nor, mat_pca, dom_dict, macie)
+    #rozklad_aa_bb_ab(mat_pca)
+    permutation_pca(arr, mat_pca, dom_dict, macie)
     #permutation(arr_nor, dom_dict, macie)
     
     

@@ -23,16 +23,18 @@ def lines(path,header=False):
 
 def parse_domains(gen):
     domains = defaultdict(list)
+    #nr = 0
     for l in gen:
         #print l
-        start = int(l[2]) 
-        end = int(l[3].split("\n")[0])
-        lev = l[0] 
-        domains[("lev"+lev, l[1])].append((start,end))
+        if l[1] == opts.Level and l[2] == opts.Chrom:
+            start = float(l[3])/150000.0 
+            end = (float(l[4].split("\n")[0])/150000.0) - 1
+            lev = l[1] 
+            domains[("lev"+lev, l[0])].append((start,end))
     return domains, int(lev)
 
 def plot_all(mtx, mt_i, inp, out):
-    with backend_pdf.PdfPages("%s-%s_samo.pdf" % (os.path.basename(inp), os.path.basename(out))) as pdf:
+    with backend_pdf.PdfPages("%s-%s_Rafala.pdf" % (os.path.basename(inp), os.path.basename(out))) as pdf:
         #plt.figure(dpi=1200)
         #mtx = np.load(mat)
         #fig = plt.figure(dpi=2200)
@@ -95,6 +97,8 @@ if __name__=="__main__":
     optparser.add_option('-m', type = "string", default = "", dest="Matrix", help = "Numpy matrix in npy format")
     optparser.add_option('-d', type = "string", default = "", dest="Domains", help ="Txt file with domain information")
     optparser.add_option('-i', type = "string", default = "", dest="Interaction", help ="Txt file with domain-domain interactions")
+    optparser.add_option('-l', type = "string", default = "", dest="Level", help ="The level of sherpa")
+    optparser.add_option('-c', type = "string", default = "", dest="Chrom", help ="The level of sherpa")
     
     (opts,args) = optparser.parse_args()
     if len(argv) ==1:
@@ -102,7 +106,7 @@ if __name__=="__main__":
         exit(1)
 
     domeny, le = parse_domains(lines(opts.Domains, header=False))
-    #print type(domeny)
+    print domeny
     matr = np.load(opts.Matrix)
     
     matr = clip_and_blur(matr)
