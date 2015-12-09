@@ -68,12 +68,17 @@ def prepar_interac_matr(inte, si, dom):
             dom1 = [dom[i] for i in dom.keys() if i[1] == l[0]]
             dom2 = [dom[i] for i in dom.keys() if i[1] == l[1]]
             dom1_2 = sum(dom1 + dom2,[])
+            #print dom1_2
+            if dom1_2[0]==dom1_2[1]:
+                #print dom1_2[0], dom1_2[1]
+                i_m[int(dom1_2[0][0]):int(dom1_2[0][1])+1, int(dom1_2[1][0]):int(dom1_2[1][1])+1] = 0.0
             
-            if len(dom1_2) == 2:
+            elif len(dom1_2) == 2:
                 #print dom1_2[0][0], int(dom1_2[0][1])+1, dom1_2[1][0], int(dom1_2[1][1])+1, i_m.shape
                 i_m[int(dom1_2[0][0]):int(dom1_2[0][1])+1, int(dom1_2[1][0]):int(dom1_2[1][1])+1] = round(-math.log10(float(l[2])), 5)
                 
             elif len(dom1_2) == 1:
+                #print dom1_2, dom1, dom2
                 i_m[int(dom1_2[0][0]):int(dom1_2[0][1])+1, int(dom1_2[1][0]):int(dom1_2[1][1])+1] = round(-math.log10(float(l[2])), 5)
                 
             else: print "More domains!!!!", dom1_2
@@ -83,10 +88,16 @@ def prepar_interac_matr(inte, si, dom):
             dom2 = [dom[i] for i in dom.keys() if i[1] == l[1]]
             dom1_2 = sum(dom1 + dom2,[])
            
-            if len(dom1_2) == 2:
+            if dom1_2[0]==dom1_2[1]:
+                #print dom1_2[0], dom1_2[1]
+                i_m[int(dom1_2[0][0]):int(dom1_2[0][1])+1, int(dom1_2[1][0]):int(dom1_2[1][1])+1] = 0.0
+                
+            elif len(dom1_2) == 2:
+                #print dom1_2, type(dom1)
                 i_m[int(dom1_2[0][0]):int(dom1_2[0][1])+1, int(dom1_2[1][0]):int(dom1_2[1][1])+1] = 500
                 
             elif len(dom1_2) == 1:
+                #print dom1_2, dom1, dom2
                 i_m[int(dom1_2[0][0]):int(dom1_2[0][1])+1, int(dom1_2[1][0]):int(dom1_2[1][1])+1] = 500
                 
             else: print "More domains!!!!", dom1_2
