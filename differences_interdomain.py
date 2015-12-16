@@ -32,9 +32,9 @@ def parse_domains(gen):
             lev = l[1]
             if end > end0: end0 = end 
             domains[("lev"+lev, l[0])].append((start,end))
-    return domains, end0
+    return domains, end0, lev
 
-def plot_all(mtx, mt_i, out):
+def plot_all(mtx, mt_i, xy, out):
     with backend_pdf.PdfPages("%s_roznicowa_Rafala.pdf" % ( os.path.basename(out))) as pdf:
         #plt.figure(dpi=1200)
         #mtx = np.load(mat)
@@ -45,13 +45,16 @@ def plot_all(mtx, mt_i, out):
         
         plt.imshow(np.tril(mtx),origin='lower',norm=LogNorm(),cmap="Blues", interpolation='nearest')
         #print "SPRAWDZAM", mt_i[1196:1219, 1640:1672]    
-        plt.imshow(mt_i,origin='lower',norm=LogNorm(),cmap="Reds", alpha = 0.5)
+        plt.imshow(mt_i,origin='lower',norm=LogNorm(),cmap="Reds")
         plt.colorbar()
+        
+        x,y = zip(*xy)
+        plt.plot(x,y,linestyle='-',linewidth=0.3, color = 'black')
         
         plt.axis([0,mtx.shape[0],0,mtx.shape[0]])
         plt.legend(loc='best')
         plt.title("Plot",fontsize=7)
-        pdf.savefig(fig, dpi = 1500)
+        pdf.savefig(fig, dpi = 1500, bbox_inches='tight')
         plt.close()
         print "finished plotting" 
 
@@ -133,7 +136,7 @@ if __name__=="__main__":
         print optparser.format_help()
         exit(1)
 
-    domeny, dl = parse_domains(lines(opts.Domains, header=False))
+    domeny, dl, level = parse_domains(lines(opts.Domains, header=False))
     #print domeny
     
     inter_mtx, interac_d = prepar_interac_matr(lines(opts.Interaction, header=False), dl, domeny)
@@ -145,7 +148,7 @@ if __name__=="__main__":
     other_mtx=lines(opts.Files, header=True)
     int_mtres = []
     for lin in other_mtx:
-        dom, d = parse_domains(lines(lin[0], header=False))
+        dom, d, level = parse_domains(lines(lin[0], header=False))
         int_m, dict = prepar_interac_matr(lines(lin[1], header=False), d, dom)
         int_mtres.append(int_m)
     
@@ -157,16 +160,24 @@ if __name__=="__main__":
     for ma in int_mtres:
         inter_mtx[np.where(inter_mtx==ma)] = 0.0
     
-    for ke in domeny.keys():
-        for ka in domeny.keys():
-            #print domeny[ke][0][0], domeny[ka][0][0]
-            if np.sum(inter_mtx[int(domeny[ke][0][0]):int(domeny[ke][0][1])+1, int(domeny[ka][0][0]):int(domeny[ka][0][1])+1]) != 0.0:
-                key = "%s %s" %(ke[1], ka[1])
-                #print key, np.sum(inter_mtx[int(domeny[ke][0][0]):int(domeny[ke][0][1])+1, int(domeny[ka][0][0]):int(domeny[ka][0][1])+1])
-                inter_mtx[np.where(inter_mtx[int(domeny[ke][0][0]):int(domeny[ke][0][1])+1, int(domeny[ka][0][0]):int(domeny[ka][0][1])+1] == 1.0)] = round(-math.log10(float(interac_d[key])), 5)
-                print ke[1], ka[1], interac_d[key]
+    xyki = []
+    for d_key in domeny.keys():
+        xyki = xyki + sum([[(start,start), (end,start), (end,end)] for start, end in domeny[d_key]],[])
     
-    plot_all(matr, inter_mtx, opts.Interaction)
+    new = np.zeros_like(inter_mtx)
+    #print np.sum(new) 
+               
+    for key in interac_d.keys():
+        #print key, domeny
+        ke = ('lev'+level, key.split(' ')[0])
+        ka = ('lev'+level, key.split(' ')[1])
+        if np.sum(inter_mtx[int(domeny[ke][0][0]):int(domeny[ke][0][1])+1, int(domeny[ka][0][0]):int(domeny[ka][0][1])+1]) != 0.0: 
+            if float(interac_d[key]) != 0.0:
+                new[int(domeny[ke][0][0]):int(domeny[ke][0][1])+1, int(domeny[ka][0][0]):int(domeny[ka][0][1])+1][np.where(inter_mtx[int(domeny[ke][0][0]):int(domeny[ke][0][1])+1, int(domeny[ka][0][0]):int(domeny[ka][0][1])+1] == 1.0)] = round(-math.log10(float(interac_d[key])), 5)
+            else: new[int(domeny[ke][0][0]):int(domeny[ke][0][1])+1, int(domeny[ka][0][0]):int(domeny[ka][0][1])+1][np.where(inter_mtx[int(domeny[ke][0][0]):int(domeny[ke][0][1])+1, int(domeny[ka][0][0]):int(domeny[ka][0][1])+1] == 1.0)] = 500
+            print ke[1], ka[1], interac_d[key]
+    
+    plot_all(matr, new, xyki, opts.Interaction)
     
     
     #Sprawdzenie symetrycznosci
