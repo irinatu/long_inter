@@ -3,8 +3,10 @@ from collections import defaultdict
 
 import optparse, os, math
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm, SymLogNorm
+from matplotlib.colors import LogNorm
 
 from util import clip_and_blur
 
@@ -35,28 +37,33 @@ def parse_domains(gen):
     return domains, end0, lev
 
 def plot_all(mtx, mt_i, xy, out):
-    with backend_pdf.PdfPages("%s_roznicowa_Rafala.pdf" % ( os.path.basename(out))) as pdf:
+    #with backend_pdf.PdfPages("%s_roznicowa_Rafala.pdf" % ( os.path.basename(out))) as pdf:
         #plt.figure(dpi=1200)
         #mtx = np.load(mat)
         #fig = plt.figure(dpi=2200)
-        fig = plt.figure()
+        #fig = plt.figure()
         #colormap = plt.cm.gist_ncar
         #plt.imshow(mtx,interpolation='nearest',origin='lower',norm=LogNorm(),cmap=cm.jet)
         
-        plt.imshow(np.tril(mtx),origin='lower',norm=LogNorm(),cmap="Blues", interpolation='nearest')
-        #print "SPRAWDZAM", mt_i[1196:1219, 1640:1672]    
-        plt.imshow(mt_i,origin='lower',norm=LogNorm(),cmap="Reds")
-        plt.colorbar()
-        
-        x,y = zip(*xy)
-        plt.plot(x,y,linestyle='-',linewidth=0.3, color = 'black')
-        
-        plt.axis([0,mtx.shape[0],0,mtx.shape[0]])
-        plt.legend(loc='best')
-        plt.title("Plot",fontsize=7)
-        pdf.savefig(fig, dpi = 1500, bbox_inches='tight')
-        plt.close()
-        print "finished plotting" 
+    #plt.imshow(np.tril(mtx),origin='lower',norm=LogNorm(),cmap="Blues", interpolation='nearest')
+    x,y = zip(*xy)
+    plt.plot(x,y,linestyle='-',linewidth=0.3, color = 'black')
+    plt.imshow(np.tril(mtx), norm=LogNorm(), cmap="Blues", interpolation='nearest', origin = 'upper')
+    plt.imshow(mt_i, norm=LogNorm(), cmap="Reds", interpolation='nearest', origin = 'upper')
+    plt.colorbar()
+    #plt.show()
+    
+    #ax=pylab.gca()
+    #ax.set_ylim(ax.get_ylim()[::-1])
+    
+    #plt.axis([0,mtx.shape[0],0,mtx.shape[0]])
+    plt.legend(loc='best')
+    plt.title("Plot",fontsize=7)
+    out = "%s_diff_Rafala.png" % ( os.path.basename(out).split('.')[0])
+    plt.savefig(out, dpi = 1500, bbox_inches='tight')
+    plt.show()
+    plt.close()
+    print "finished plotting" 
 
 def prepar_interac_matr(inte, si, dom):
     i_m = np.zeros((si, si))
