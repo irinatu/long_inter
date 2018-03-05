@@ -48,9 +48,10 @@ def plot_all(mtx, mt_i, xy, out):
     #plt.imshow(np.tril(mtx),origin='lower',norm=LogNorm(),cmap="Blues", interpolation='nearest')
     x,y = zip(*xy)
     plt.plot(x,y,linestyle='-',linewidth=0.3, color = 'black')
-    plt.imshow(np.tril(mtx), norm=LogNorm(), cmap="Blues", interpolation='nearest', origin = 'upper')
-    plt.imshow(mt_i, norm=LogNorm(), cmap="Reds", interpolation='nearest', origin = 'upper')
+    
+    plt.imshow(mt_i, norm=LogNorm(), cmap="Reds",interpolation='none', origin = 'upper')
     plt.colorbar()
+    plt.imshow(np.tril(mtx),norm=LogNorm(), cmap="Blues", interpolation='nearest', origin = 'upper')
     #plt.show()
     
     #ax=pylab.gca()
@@ -76,7 +77,7 @@ def prepar_interac_matr(inte, si, dom):
     for l in inte:
         #print l
         if l[2] != '0.0' and float(l[2]) < 0.05:
-            #print "nie 0.0"
+            print "NIE 0.0"
             dom1 = [dom[i] for i in dom.keys() if i[1] == l[0]]
             dom2 = [dom[i] for i in dom.keys() if i[1] == l[1]]
             dom1_2 = sum(dom1 + dom2,[])
@@ -181,7 +182,9 @@ if __name__=="__main__":
         if np.sum(inter_mtx[int(domeny[ke][0][0]):int(domeny[ke][0][1])+1, int(domeny[ka][0][0]):int(domeny[ka][0][1])+1]) != 0.0: 
             if float(interac_d[key]) != 0.0:
                 new[int(domeny[ke][0][0]):int(domeny[ke][0][1])+1, int(domeny[ka][0][0]):int(domeny[ka][0][1])+1][np.where(inter_mtx[int(domeny[ke][0][0]):int(domeny[ke][0][1])+1, int(domeny[ka][0][0]):int(domeny[ka][0][1])+1] == 1.0)] = round(-math.log10(float(interac_d[key])), 5)
-            else: new[int(domeny[ke][0][0]):int(domeny[ke][0][1])+1, int(domeny[ka][0][0]):int(domeny[ka][0][1])+1][np.where(inter_mtx[int(domeny[ke][0][0]):int(domeny[ke][0][1])+1, int(domeny[ka][0][0]):int(domeny[ka][0][1])+1] == 1.0)] = 500
+            else: 
+                print "p-val = 0!!!"
+                new[int(domeny[ke][0][0]):int(domeny[ke][0][1])+1, int(domeny[ka][0][0]):int(domeny[ka][0][1])+1][np.where(inter_mtx[int(domeny[ke][0][0]):int(domeny[ke][0][1])+1, int(domeny[ka][0][0]):int(domeny[ka][0][1])+1] == 1.0)] = 500.0
             print ke[1], ka[1], interac_d[key]
     
     plot_all(matr, new, xyki, opts.Interaction)

@@ -15,7 +15,7 @@ def nb_contacts_plot(matr, dom_d):
         yki[i-min(i,1): i+min(1,size-i)] = 0
         
         if yki.sum() == 0.0 or (dom_d[i][1]-dom_d[i][0])<30: continue
-        #print i,  np.argmax(yki)
+        print i,  np.argmax(yki)
         plt.suptitle('%i' %i)
         plt.plot(xy,yki)
         plt.ylim(0,600)
@@ -47,22 +47,20 @@ def clip(arr, stddevs=10):
 
 def calculate_prob(mat_dom, dom):
     print "#domain_1 domain_2 p-value"
-    N = np.sum(mat_dom)
+    #N = np.sum(mat_dom)
+    N = np.sum(np.tril(mat_dom))
     acc = 0
     dl = mat_dom.shape[0]
     all_cont = dl*(dl-1)/2
     for  i in dom.keys():
         for j in dom.keys():
-            print "I_J", i, j
             a = sum(mat_dom[dom[i][0]][:])
             b = sum(mat_dom[dom[j][0]][:])
             #p = 1- scipy.stats.hypergeom(round(N), round(a), round(b)).cdf(round(mat_dom[i][j]))
             p = scipy.stats.hypergeom(round(N), round(a), round(b)).sf(round(mat_dom[dom[i][0]][dom[j][0]]))
             oczekiw = float(a)*float(b)/float(N)
             #print "Oczekiw",oczekiw, mat_dom[dom[i][0]][dom[j][0]]
-            if oczekiw == 0.0 or mat_dom[dom[i][0]][dom[j][0]] == 0.0: 
-                print "Oczek, ZERO", oczekiw, i, j
-                continue
+            if oczekiw == 0.0 or mat_dom[dom[i][0]][dom[j][0]] == 0.0: continue
 #==============================================================================
             #print "oczekiwana ", oczekiw, " obserwowana ", mat_dom[i][j]
             #print i, dom[i][0], dom[i][1], j, dom[j][0], dom[j][1], N, a, b,mat_dom[i][j], p, acc, all_cont
@@ -83,6 +81,7 @@ def symmetric(ma):
         new[:,c] = ma[c]+ma[:,c]
     #new[np.isnan(new)] = 0
     #print  np.allclose(np.transpose(new), new), new.size - np.isnan(new).sum()
+    new = new/2.0
     return new
 
 
@@ -100,7 +99,7 @@ if __name__ == '__main__':
 
     (opts,args) = optparser.parse_args()
     #print len(sys.argv)
-    if len(sys.argv) < 9:
+    if len(sys.argv) < 4:
         print "No matrix or domain information were given, sorry. Run script by: python long_dist.py matrix.npy domain_info.txt"
         print optparser.format_help()
         sys.exit(1)
@@ -122,10 +121,10 @@ if __name__ == '__main__':
         if opts.Level == "":
             dom = {float(rows[3])/150000.0 :[rows[0], (float(rows[4])/150000.0)-1] for rows in reader if rows[2]== opts.Chrom}  
         else:
+            #print "Podany level", opts.Level, opts.Chrom
             dom = {float(rows[3])/150000.0:[rows[0], (float(rows[4])/150000.0)-1] for rows in reader if (rows[1] == opts.Level and rows[2]==opts.Chrom)}
         #dom_dict = {int(k):map(int,v) for k, v in dom_dict.iteritems()}
         #dom_dict = map(int, dom_dict)
-    #print dom
     numline = len(dom.keys())
     dom_dict = {dom[start][0]:[nr, start, dom[start][1]] for start,nr in zip(sorted(dom.keys()), range(numline)) }
     dom.keys().sort()
@@ -133,8 +132,10 @@ if __name__ == '__main__':
     #print dom_dict
     
     #arr = clip(arr)
-    arr = symmetric(arr)
-    print arr[0].shape, len(dom_dict.keys())
+    #arr = symmetric(arr)
+    #arr =arr/2.0
+    arr = (arr+arr.T)/2.0   
+    #print arr[0].shape, len(dom_dict.keys())
     new_arr = domens_matr(dom_dict, arr)
     #print new_arr[0], type(new_arr[0][3]) 
         

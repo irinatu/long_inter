@@ -46,7 +46,7 @@ def plot_all(mtx, mt_i, inp, out):
         
     plt.imshow(np.tril(mtx),origin='lower',norm=LogNorm(),cmap="Blues", interpolation='nearest')
     #print "SPRAWDZAM", mt_i[1196:1219, 1640:1672]    
-    plt.imshow(mt_i,origin='lower',norm=LogNorm(),cmap="Reds")
+    plt.imshow(mt_i,origin='lower',norm=LogNorm(),cmap="Reds", interpolation = 'nearest')
     plt.colorbar()
     
     plt.axis([0,mtx.shape[0],0,mtx.shape[0]])
@@ -54,7 +54,7 @@ def plot_all(mtx, mt_i, inp, out):
     plt.title("Plot",fontsize=7)
     out = "%s-%s.png" % (os.path.basename(inp).split('.')[0], os.path.basename(out).split('.')[0])
     #pdf.savefig(fig, dpi = 1500)
-    plt.savefig(out, bbox_inches='tight')
+    plt.savefig(out, dpi = 1500, bbox_inches='tight')
     plt.close()
     print "finished plotting" 
 
